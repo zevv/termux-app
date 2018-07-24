@@ -59,6 +59,7 @@ public final class KeyHandler {
     public static final int KEYMOD_ALT = 0x80000000;
     public static final int KEYMOD_CTRL = 0x40000000;
     public static final int KEYMOD_SHIFT = 0x20000000;
+    public static final int KEYMOD_FUNCTION = 0x10000000;
 
     private static final Map<String, Integer> TERMCAP_TO_KEYCODE = new HashMap<>();
 
@@ -154,9 +155,17 @@ public final class KeyHandler {
                 return "\015";
 
             case KEYCODE_DPAD_UP:
-                return (keyMode == 0) ? (cursorApp ? "\033OA" : "\033[A") : transformForModifiers("\033[1", keyMode, 'A');
+                if((keyMode & KEYMOD_FUNCTION) != 0) {
+                    return "\033[5~";
+                } else {
+                    return (keyMode == 0) ? (cursorApp ? "\033OA" : "\033[A") : transformForModifiers("\033[1", keyMode, 'A');
+                }
             case KEYCODE_DPAD_DOWN:
-                return (keyMode == 0) ? (cursorApp ? "\033OB" : "\033[B") : transformForModifiers("\033[1", keyMode, 'B');
+                if((keyMode & KEYMOD_FUNCTION) != 0) {
+                    return "\033[6~";
+                } else {
+                    return (keyMode == 0) ? (cursorApp ? "\033OB" : "\033[B") : transformForModifiers("\033[1", keyMode, 'B');
+                }
             case KEYCODE_DPAD_RIGHT:
                 return (keyMode == 0) ? (cursorApp ? "\033OC" : "\033[C") : transformForModifiers("\033[1", keyMode, 'C');
             case KEYCODE_DPAD_LEFT:
@@ -283,7 +292,7 @@ public final class KeyHandler {
 
     private static String transformForModifiers(String start, int keymod, char lastChar) {
         int modifier;
-        switch (keymod) {
+        switch (keymod & (KEYMOD_SHIFT | KEYMOD_ALT | KEYMOD_CTRL)) {
             case KEYMOD_SHIFT:
                 modifier = 2;
                 break;
